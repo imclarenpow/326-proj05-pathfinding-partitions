@@ -1,11 +1,31 @@
 import java.util.*;
 
 public class PathfindingPartitions {
+    private static ArrayList<ArrayList<Integer>> bestMoves = new ArrayList<>();
+    private static int amtMoves = 0;
 
     public static void main(String[] args) {
-        // TODO: handle stdin() better
-        // TODO: handle impossible cases
-        debugAlgorithm(); // only includes possible test cases
+        ArrayList<ArrayList<Integer>> input = stdin();
+        if(input.size()%2 != 0){
+            input.remove(input.size()-1);
+        }
+        for(int i = 0; i < input.size(); i+=2){
+            bestMoves = new ArrayList<>();
+            amtMoves = 0;
+            int sum1 = input.get(i).stream().mapToInt(Integer::intValue).sum();
+            int sum2 = input.get(i+1).stream().mapToInt(Integer::intValue).sum();
+            if(sum1 == sum2){
+                aStar(input.get(i), input.get(i+1));
+                System.out.println("# Moves Required: " + amtMoves);
+                for(ArrayList<Integer> move : bestMoves){
+                    System.out.println(partitionFormatting(move));
+                }
+            }else{ 
+                System.out.println("# No solution\n" + partitionFormatting(input.get(i)) + "\n" + partitionFormatting(input.get(i+1))); 
+            }
+            if(i!=input.size()-2){ System.out.println("----"); }
+        }
+        //debugAlgorithm(); // only includes possible test cases
     }
 
     public static void aStar(ArrayList<Integer> frstPos, ArrayList<Integer> goalPos){
@@ -27,8 +47,9 @@ public class PathfindingPartitions {
                     currSt8 = from.get(currSt8);
                 }
                 Collections.reverse(path); // path is currently goal to init, we want the reverse
+                amtMoves = path.size()-1;
                 for(ArrayList<Integer> state : path){
-                    System.out.println(state);
+                    bestMoves.add(state);
                 }
                 return;
             }
@@ -46,7 +67,8 @@ public class PathfindingPartitions {
                 }
             }
         }
-        System.out.println("No solution found");
+        System.out.println("# No solution "+ "\n" + partitionFormatting(frstPos) + "\n" + partitionFormatting(goalPos));
+        bestMoves.clear();
     }
 
     public static ArrayList<Integer> makeMove(ArrayList<Integer> current, int index, int sizeToMove) {
@@ -69,25 +91,8 @@ public class PathfindingPartitions {
         Collections.sort(newConfiguration, Collections.reverseOrder());
         return newConfiguration;
     }
-
-    public static ArrayList<ArrayList<Integer>> stdin() {
-        Scanner sc = new Scanner(System.in);
-        ArrayList<ArrayList<Integer>> output = new ArrayList<>();
-        while (sc.hasNextLine()) {
-            String line = sc.nextLine();
-            if (line.startsWith("#") || line.startsWith("-")) {
-                continue;
-            }
-            ArrayList<Integer> numbers = new ArrayList<>();
-            for (String s : line.split(" ")) {
-                numbers.add(Integer.parseInt(s));
-            }
-            output.add(numbers);
-        }
-        sc.close();
-        return output;
-    }
-    /** hueristic for playing partitions */
+    
+    /** hueristic for playing partitions, this is probably going to be as optimal as possible for this problem. */
     public static int heuris(ArrayList<Integer> curr, ArrayList<Integer>goal){
         int max;
         if(curr.size() > goal.size()){ max = curr.size(); }
@@ -103,32 +108,58 @@ public class PathfindingPartitions {
             // bit more complex bc if there is nothing at i we have to return 0
             int y = Math.abs((i<curr.size()) ? curr.indexOf(currVal) : 0 - 
                     ((i<goal.size()) ? goal.indexOf(goalVal) : 0));
+            dist += x + y;
         }
         return dist;
     }
-    public static void debugAlgorithm(){
-        DebugginUtils d = new DebugginUtils();
-        ArrayList<Integer> frstPos = d.arrToList(new int[] { 4, 3, 1 });
-        ArrayList<Integer> goalPos = d.arrToList(new int[] { 2, 2, 2, 2 });
-        // expected 4, 3, 1 | 3, 3, 2 | 2, 2, 2, 2
-        aStar(frstPos, goalPos);
-        System.out.println("----");
-        frstPos = d.arrToList(new int[] {2, 2});
-        goalPos = d.arrToList(new int[] {3, 1});
-        // expected 2, 2 | 2, 1, 1 | 3, 1
-        aStar(frstPos, goalPos);
-        System.out.println("----");
-        frstPos = d.arrToList(new int[] {3, 2, 1});
-        goalPos = d.arrToList(new int[] {3, 3});
-        // expected 3, 2, 1 | 2, 2, 1, 1 | 4, 1, 1 | 3, 3
-        aStar(frstPos, goalPos);
-        System.out.println("----");
-        frstPos = d.arrToList(new int[] {4, 4, 3, 2, 2, 1});
-        goalPos = d.arrToList(new int[] {6, 5, 5});
-        // expected 4, 4, 3, 2, 2, 1 | 3, 3, 3, 2, 2, 2, 1 | 7, 2, 2, 2, 1, 1, 1 | 7, 6, 1, 1, 1 | 6, 5, 5
-        aStar(frstPos, goalPos);
+    /** handles stdin and returns as expected input to algorithm */
+    public static ArrayList<ArrayList<Integer>> stdin() {
+        Scanner sc = new Scanner(System.in);
+        ArrayList<ArrayList<Integer>> output = new ArrayList<>();
+        ArrayList<String> rawInput = new ArrayList<>();
+        while (sc.hasNextLine()) {
+            rawInput.add(sc.nextLine());
+        }
+        sc.close();
+        // make sure we only accept the first two args since a seperator
+        int twoArgs = 0;
+        for(String input : rawInput){
+            if(input.trim().isEmpty()){ continue; }
+            if(input.trim().startsWith("-")){ twoArgs = 0; continue; }
+            if(input.trim().startsWith("#")){ continue;}
+            if(Character.isDigit(input.trim().charAt(0)) && twoArgs < 2){
+                String wsComma = input.replaceAll("(?<=\\d)\\s+(?=,)", "").replaceAll(",", ", ");
+                String[] parts = wsComma.split("\\s+");
+                int[] nums = new int[parts.length];
+                try{
+                    for (int i = 0; i < parts.length; i++) {
+                            nums[i] = Integer.parseInt(parts[i]);
+                    }
+                    twoArgs++;
+                } catch (NumberFormatException e) {
+                    continue;
+                }
+                ArrayList<Integer> inputList = new ArrayList<>();
+                for (int num : nums) {
+                    inputList.add(num);
+                }
+                Collections.sort(inputList, Collections.reverseOrder());
+                output.add(inputList);
+            }
+        }
+        
+        return output;
     }
-
+    public static String partitionFormatting(ArrayList<Integer> partition) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < partition.size(); i++) {
+            sb.append(partition.get(i));
+            if (i != partition.size() - 1) {
+                sb.append(" ");
+            }
+        }
+        return sb.toString();
+    }
     static class State {
         ArrayList<Integer> configuration;
         int cost;

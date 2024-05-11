@@ -1,0 +1,44 @@
+# this one was for checking the moves method
+// obviously, sort descending.
+        ArrayList<ArrayList<Integer>> output = new ArrayList<>();
+        ArrayList<Integer> start = new ArrayList<>();
+        start.add(5);
+        start.add(4);
+        start.add(3);
+        start.add(2);
+        start.add(1);
+        int largest = Collections.max(start);
+        largest--;
+        output.add(start);
+        for(int i = 0; i< 5; i++){
+            output.add(makeMove(output.get(output.size()-1), largest));
+            largest--;
+        }
+        for(ArrayList<Integer> a : output){
+            System.out.println(a.toString());
+        }
+# debugging method for algorithm
+    // method that debugs the algorithm.
+    public static void debugAlgorithm(){
+        DebugginUtils d = new DebugginUtils();
+        ArrayList<Integer> frstPos = d.arrToList(new int[] { 4, 3, 1 });
+        ArrayList<Integer> goalPos = d.arrToList(new int[] { 2, 2, 2, 2 });
+        // expected 4, 3, 1 | 3, 3, 2 | 2, 2, 2, 2
+        aStar(frstPos, goalPos);
+        System.out.println("----");
+        frstPos = d.arrToList(new int[] {2, 2});
+        goalPos = d.arrToList(new int[] {3, 1});
+        // expected 2, 2 | 2, 1, 1 | 3, 1
+        aStar(frstPos, goalPos);
+        System.out.println("----");
+        frstPos = d.arrToList(new int[] {3, 2, 1});
+        goalPos = d.arrToList(new int[] {3, 3});
+        // expected 3, 2, 1 | 2, 2, 1, 1 | 4, 1, 1 | 3, 3
+        aStar(frstPos, goalPos);
+        System.out.println("----");
+        frstPos = d.arrToList(new int[] {4, 4, 3, 2, 2, 1});
+        goalPos = d.arrToList(new int[] {6, 5, 5});
+        // expected 4, 4, 3, 2, 2, 1 | 3, 3, 3, 2, 2, 2, 1 | 7, 2, 2, 2, 1, 1, 1 | 7, 6, 1, 1, 1 | 6, 5, 5
+        aStar(frstPos, goalPos);
+    }
+
