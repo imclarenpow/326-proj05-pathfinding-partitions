@@ -16,19 +16,19 @@ public class PathfindingPartitions {
             int sum2 = input.get(i+1).stream().mapToInt(Integer::intValue).sum();
             if(sum1 == sum2){
                 aStar(input.get(i), input.get(i+1));
-                System.out.println("# Moves Required: " + amtMoves);
+                System.out.println("# Moves required: " + amtMoves);
                 for(ArrayList<Integer> move : bestMoves){
                     System.out.println(partitionFormatting(move));
                 }
             }else{ 
-                System.out.println("# No solution\n" + partitionFormatting(input.get(i)) + "\n" + partitionFormatting(input.get(i+1))); 
+                System.out.println("# No solution possible\n" + partitionFormatting(input.get(i)) + "\n" + partitionFormatting(input.get(i+1))); 
             }
             if(i!=input.size()-2){ System.out.println("----"); }
         }
-        //debugAlgorithm(); // only includes possible test cases
     }
 
     public static void aStar(ArrayList<Integer> frstPos, ArrayList<Integer> goalPos){
+        int amtPegs = sumOf(frstPos);
         // sort all states by cost
         PriorityQueue<State> costs = new PriorityQueue<>(Comparator.comparingInt(s -> s.cost));
         Map<ArrayList<Integer>, Integer> currCost = new HashMap<>();
@@ -57,7 +57,7 @@ public class PathfindingPartitions {
             for(int i = 0; i < curr.configuration.size(); i++){
                 for(int j = 0; j <= curr.configuration.get(i); j++){
                     ArrayList<Integer> naybr = makeMove(curr.configuration, i, j);
-                    int newCost = currCost.get(curr.configuration) + 1; // neighbour is right beside so +1
+                    int newCost = currCost.get(curr.configuration) + amtPegs; // set to amtPegs, I don't fully understand this but it does get the best possible path
                     if(!currCost.containsKey(naybr) || newCost < currCost.get(naybr)){
                         currCost.put(naybr, newCost);
                         int priority = newCost + heuris(naybr, goalPos); // A* cost (specific to this problem)
@@ -67,10 +67,10 @@ public class PathfindingPartitions {
                 }
             }
         }
-        System.out.println("# No solution "+ "\n" + partitionFormatting(frstPos) + "\n" + partitionFormatting(goalPos));
+        System.out.println("# No solution possible"+ "\n" + partitionFormatting(frstPos) + "\n" + partitionFormatting(goalPos));
         bestMoves.clear();
     }
-
+    // is the cost equal to the amount of rows? ie if we have to remove some because they equal zero?
     public static ArrayList<Integer> makeMove(ArrayList<Integer> current, int index, int sizeToMove) {
         ArrayList<Integer> newConfiguration = new ArrayList<>(current);
         int newRow = 0;
@@ -149,6 +149,14 @@ public class PathfindingPartitions {
         }
         
         return output;
+    }
+    // returns the sum of all elements in arraylist
+    public static int sumOf(ArrayList<Integer> list){
+        int sum = 0;
+        for(int i : list){
+            sum += i;
+        }
+        return sum;
     }
     public static String partitionFormatting(ArrayList<Integer> partition) {
         StringBuilder sb = new StringBuilder();
